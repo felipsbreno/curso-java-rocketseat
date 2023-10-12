@@ -1,8 +1,8 @@
 package br.com.breno.todolist.user;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,13 +17,21 @@ public class UserController {
   private IUserRepository userRepository;
 
   @GetMapping
-  public List<UserModel> list() {
-    return this.userRepository.findAll();
+  public ResponseEntity<?> list() {
+    var userList = this.userRepository.findAll();
+    return ResponseEntity.ok().body(userList);
   }
 
   @PostMapping
-  public UserModel create(@RequestBody UserModel userModel) {
+  public ResponseEntity<?> create(@RequestBody UserModel userModel) {
+    var email = this.userRepository.findByEmail(userModel.getEmail());
+    var username = this.userRepository.findByUsername(userModel.getUsername());
+
+    if (email != null || username != null) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário com esse email a usernamejá está em uso!");
+    }
+
     var userCreate = this.userRepository.save(userModel);
-    return userCreate;
+    return ResponseEntity.status(HttpStatus.CREATED).body(userCreate);
   }
 }
