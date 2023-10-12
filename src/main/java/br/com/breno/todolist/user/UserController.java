@@ -24,11 +24,10 @@ public class UserController {
 
   @PostMapping
   public ResponseEntity<?> create(@RequestBody UserModel userModel) {
-    var email = this.userRepository.findByEmail(userModel.getEmail());
     var username = this.userRepository.findByUsername(userModel.getUsername());
 
-    if (email != null || username != null) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário com esse email a usernamejá está em uso!");
+    if (username != null) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário com esse username já está em uso!");
     }
 
     var userCreate = this.userRepository.save(userModel);
