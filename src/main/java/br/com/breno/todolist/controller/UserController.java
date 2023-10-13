@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import br.com.breno.todolist.model.UserModel;
 import br.com.breno.todolist.repository.IUserRepository;
+import br.com.breno.todolist.service.UserService;
 
 @RestController
 @RequestMapping("/users")
@@ -20,9 +20,15 @@ public class UserController {
   @Autowired
   private IUserRepository userRepository;
 
+  private UserService userService;
+
+  public UserController(UserService userService) {
+    this.userService = userService;
+  }
+
   @GetMapping
   public ResponseEntity<?> list() {
-    var userList = this.userRepository.findAll();
+    var userList = userService.list();
     return ResponseEntity.ok().body(userList);
   }
 
@@ -34,10 +40,7 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário com esse username já está em uso!");
     }
 
-    var passwordHash = BCrypt.withDefaults().hashToString(12, userModel.getPassword().toCharArray());
-    userModel.setPassword(passwordHash.toString());
-
-    var userCreate = this.userRepository.save(userModel);
+    var userCreate = userService.add(userModel);
     return ResponseEntity.status(HttpStatus.CREATED).body(userCreate);
   }
 }
