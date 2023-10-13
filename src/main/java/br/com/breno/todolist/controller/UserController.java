@@ -1,4 +1,4 @@
-package br.com.breno.todolist.user;
+package br.com.breno.todolist.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
+import br.com.breno.todolist.model.UserModel;
+import br.com.breno.todolist.repository.IUserRepository;
 
 @RestController
 @RequestMapping("/users")

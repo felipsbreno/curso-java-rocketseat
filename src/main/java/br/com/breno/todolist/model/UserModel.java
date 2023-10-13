@@ -1,4 +1,4 @@
-package br.com.breno.todolist.user;
+package br.com.breno.todolist.model;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
