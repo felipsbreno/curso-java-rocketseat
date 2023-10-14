@@ -11,11 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.breno.todolist.model.UserModel;
 import br.com.breno.todolist.repository.IUserRepository;
 import br.com.breno.todolist.service.UserService;
-import lombok.extern.slf4j.Slf4j;
+import br.com.breno.todolist.utils.ExceptionUtils;
 
 @RestController
 @RequestMapping("/users")
-@Slf4j
 public class UserController {
 
   @Autowired
@@ -29,8 +28,12 @@ public class UserController {
 
   @GetMapping
   public ResponseEntity<?> list() {
-    var userList = userService.list();
-    return ResponseEntity.ok().body(userList);
+    try {
+      var userList = userService.list();
+      return ResponseEntity.ok().body(userList);
+    } catch (Exception ex) {
+      return ExceptionUtils.getException(ex);
+    }
   }
 
   @PostMapping
@@ -43,9 +46,7 @@ public class UserController {
       var userCreate = userService.create(userModel);
       return ResponseEntity.created(null).body(userCreate);
     } catch (Exception ex) {
-      ex.printStackTrace();
-      log.error(ex.getMessage());
-      return ResponseEntity.badRequest().body(ex.getMessage());
+      return ExceptionUtils.getException(ex);
     }
   }
 }

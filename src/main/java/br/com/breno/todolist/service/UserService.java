@@ -12,10 +12,9 @@ import org.springframework.stereotype.Service;
 
 import br.com.breno.todolist.model.UserModel;
 import br.com.breno.todolist.repository.IUserRepository;
-import lombok.extern.slf4j.Slf4j;
+import br.com.breno.todolist.utils.ExceptionUtils;
 
 @Service
-@Slf4j
 public class UserService {
 
   @Autowired
@@ -42,9 +41,7 @@ public class UserService {
       cipher.init(mode, secretKey);
       return cipher.doFinal(password.getBytes());
     } catch (Exception ex) {
-      ex.printStackTrace();
-      log.error(ex.getMessage());
-      return ex.getMessage().getBytes();
+      return ExceptionUtils.getExceptionByte(ex);
     }
   }
 
