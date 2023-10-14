@@ -28,16 +28,15 @@ public class UserService {
 
   public UserModel create(UserModel userModel) throws NoSuchAlgorithmException {
     SecretKey secretKey = generatePrivateKey();
-    byte[] hashPassword = ecryptedPasswordBeforeSave(secretKey, userModel.getPassword());
+    Integer mode = getMode("encrypted");
+    byte[] hashPassword = ecryptedAndDecryptedPasswordBeforeSave(mode, secretKey, userModel.getPassword());
     userModel.setPassword(hashPassword.toString());
-
     var userCreate = this.userRepository.save(userModel);
     return userCreate;
   }
 
-  private byte[] ecryptedPasswordBeforeSave(SecretKey secretKey, String password) {
+  private byte[] ecryptedAndDecryptedPasswordBeforeSave(Integer mode, SecretKey secretKey, String password) {
     try {
-      Integer mode = Cipher.ENCRYPT_MODE;
       Cipher cipher;
       cipher = Cipher.getInstance("AES");
       cipher.init(mode, secretKey);
@@ -49,23 +48,13 @@ public class UserService {
     }
   }
 
-  private String decryptedPassword(SecretKey secretKey, String password) {
-    try {
-      Integer mode = Cipher.DECRYPT_MODE;
-      Cipher cipher;
-      cipher = Cipher.getInstance("AES");
-      cipher.init(mode, secretKey);
-      return cipher.doFinal(password.getBytes()).toString();
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      log.error(ex.getMessage());
-      return ex.getMessage();
-    }
-  }
-
   private SecretKey generatePrivateKey() throws NoSuchAlgorithmException {
     KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
     SecretKey secretKey = keyGenerator.generateKey();
     return secretKey;
+  }
+
+  private Integer getMode(String mode) {
+    return mode == "encrypted" ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE;
   }
 }

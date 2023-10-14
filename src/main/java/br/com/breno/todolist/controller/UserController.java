@@ -1,7 +1,6 @@
 package br.com.breno.todolist.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,14 +37,11 @@ public class UserController {
   public ResponseEntity<?> create(@RequestBody UserModel userModel) {
     try {
       var username = this.userRepository.findByUsername(userModel.getUsername());
-
       if (username != null) {
         return ResponseEntity.badRequest().body("Usuário com esse username já está em uso!");
       }
-
       var userCreate = userService.create(userModel);
-      return ResponseEntity.status(HttpStatus.CREATED).body(userCreate);
-
+      return ResponseEntity.created(null).body(userCreate);
     } catch (Exception ex) {
       ex.printStackTrace();
       log.error(ex.getMessage());
