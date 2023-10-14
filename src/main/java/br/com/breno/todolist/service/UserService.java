@@ -1,15 +1,21 @@
 package br.com.breno.todolist.service;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import br.com.breno.todolist.model.UserModel;
 import br.com.breno.todolist.repository.IUserRepository;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class UserService {
 
   @Autowired
@@ -20,16 +26,46 @@ public class UserService {
     return users;
   }
 
-  public UserModel add(UserModel userModel) {
-    var passwordHash = hashPassworBeforeSave(userModel.getPassword(), 12);
-    userModel.setPassword(passwordHash.toString());
+  public UserModel create(UserModel userModel) throws NoSuchAlgorithmException {
+    SecretKey secretKey = generatePrivateKey();
+    byte[] hashPassword = ecryptedPasswordBeforeSave(secretKey, userModel.getPassword());
+    userModel.setPassword(hashPassword.toString());
 
     var userCreate = this.userRepository.save(userModel);
     return userCreate;
   }
 
-  private String hashPassworBeforeSave(String passwordString, Integer cost) {
-    var hashPassword = BCrypt.withDefaults().hashToString(cost, passwordString.toCharArray());
-    return hashPassword;
+  private byte[] ecryptedPasswordBeforeSave(SecretKey secretKey, String password) {
+    try {
+      Integer mode = Cipher.ENCRYPT_MODE;
+      Cipher cipher;
+      cipher = Cipher.getInstance("AES");
+      cipher.init(mode, secretKey);
+      return cipher.doFinal(password.getBytes());
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      log.error(ex.getMessage());
+      return ex.getMessage().getBytes();
+    }
+  }
+
+  private String decryptedPassword(SecretKey secretKey, String password) {
+    try {
+      Integer mode = Cipher.DECRYPT_MODE;
+      Cipher cipher;
+      cipher = Cipher.getInstance("AES");
+      cipher.init(mode, secretKey);
+      return cipher.doFinal(password.getBytes()).toString();
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      log.error(ex.getMessage());
+      return ex.getMessage();
+    }
+  }
+
+  private SecretKey generatePrivateKey() throws NoSuchAlgorithmException {
+    KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+    SecretKey secretKey = keyGenerator.generateKey();
+    return secretKey;
   }
 }

@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.breno.todolist.model.UserModel;
 import br.com.breno.todolist.repository.IUserRepository;
 import br.com.breno.todolist.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/users")
+@Slf4j
 public class UserController {
 
   @Autowired
@@ -34,13 +36,20 @@ public class UserController {
 
   @PostMapping
   public ResponseEntity<?> create(@RequestBody UserModel userModel) {
-    var username = this.userRepository.findByUsername(userModel.getUsername());
+    try {
+      var username = this.userRepository.findByUsername(userModel.getUsername());
 
-    if (username != null) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário com esse username já está em uso!");
+      if (username != null) {
+        return ResponseEntity.badRequest().body("Usuário com esse username já está em uso!");
+      }
+
+      var userCreate = userService.create(userModel);
+      return ResponseEntity.status(HttpStatus.CREATED).body(userCreate);
+
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      log.error(ex.getMessage());
+      return ResponseEntity.badRequest().body(ex.getMessage());
     }
-
-    var userCreate = userService.add(userModel);
-    return ResponseEntity.status(HttpStatus.CREATED).body(userCreate);
   }
 }
